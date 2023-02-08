@@ -1,65 +1,49 @@
-## python-mbtiles
+# Map API
+### Описание
 
-Some python tools for working with [mbtiles](http://mapbox.com/mbtiles-spec/):
+Данный проект представляет реализацию Map API на основе Fast APi. 
+На данный момент работает только с форматом `MBtiles`. 
+Решение упаковано в Docker-контейнер, команда запуска находится в разделе "Запуск".
+Для работы `MBtiles` должен располагаться в каталоге `data`.
 
->MBTiles is a specification for storing tiled map data in SQLite databases
->for immediate use and for transfer. The files are designed for portability 
->of thousands, hundreds of thousands, or even millions of standard map tile 
->images in a single file.
 
-### Similar projects
+### Установка зависимостей
+Для локального запуска необходимо воспользоваться командой:
 
-This is nothing more than an experiment at this point. For more full-featured libraries, you may also want to check out
-
-* [mbutil](https://github.com/mapbox/mbutil)
-* [landez](https://github.com/makinacorpus/landez)
-
-### Project Goals
-
-#### Python classes
-
-Abstract the details of accessing utfgrid and image data from the sqlite datastore. See `mbtiles.py`
-
-```python
-tileset = MbtileSet(mbtiles='./data/road-trip-wilderness.mbtiles')
-zoom, col, row = 6, 9, 40
-tile = tileset.get_tile(zoom, col, row)
-binary_png = tile.get_png()
-text_json = tile.get_json()
+```commandline
+pip install -r requirements.txt
 ```
 
-#### Tile web server
+### Конфигурирование
+Конфигурирование проекта осуществляется с помощью `.env`, файла расположенного в корневом каталоге
+ - `PORT` --- Порт, по которому будет доступен API
+ - `FILE_NAME_MBTILES` --- Имя MBtiles файла
 
-Provide a fast, simple, non-blocking web server (using Tornado) to serve image and utfgrid data. You are able to pass a `callback` parameter on utfgrids for dynamic JSONP allowing easy cross-domain and framework-agnostic loading of utfgrid json tiles. See `serve_mbtiles.py`
+### Запуск
 
-```bash
-python serve_mbtiles.py # runs on 8988
-wget http://localhost:8988/test/6/9/40.png
-wget http://localhost:8988/test/6/9/40.json
-wget http://localhost:8988/test/6/9/40.json?callback=test
-wget http://localhost:8988/test/6/9/23.json?origin=top # invert y-axis for top-origin tile scheme like Google, etc.
+Для запуска в Docker-контейнере необходимо воспользоваться командой:
+
+```
+bash tools/run.sh
 ```
 
-#### Covert mbtiles to png/json files
-
-A script to convert mbtiles files into png/json files on the filesystem. This eliminates the single-file advantages of mbtiles but gains portability in that tiles can be served statically without a web server in front of it. See `mbtiles2files.py`.
-
-```bash
-# Bottom-origin tiles (TMS)
-python mbtiles2files.py -f data/road-trip-wilderness.mbtiles -o /tmp/output
-ls /tmp/output/6/9/40.*
-
-# Invert to top-origin tiles (Google, OSM, etc.)
-python mbtiles2files.py -f data/road-trip-wilderness.mbtiles -o /tmp/output --invert
-ls /tmp/output/6/9/23.*
+Для локального запуска необходимо воспользоваться командой:
+```commandline
+source .env
+uvicorn src.main:app --reload --workers 1 --host 0.0.0.0 --port 8000
 ```
-### Example
 
+### Использование API с Leaflet
 
-### Roadmap
+Для работы с Leaflet в слое L.TileLayer необходимо указать URL: `http://localhost:<YOUR PORT>/google_map/?z={z}&x={x}&y={y}` 
+и установить параметр `tsm` в значение `True`.
 
-* Make error handling more robust
-* Config file for the server (port, list of mbtiles to serve)
-* Handle jpg (coding was stupidly implemented assuming png)
-* Test cases, docs
-* setup.py file, cheesehop it, etc.
+Исчерпывающий пример конфигурации:
+```commandline
+new L.TileLayer('http://localhost:8282/google_map/?z={z}&x={x}&y={y}', {
+                    maxZoom: 24,
+                    tms: true,
+                     subdomains: ['mt0', 'mt1', 'mt2', 'mt3']
+              })
+```
+

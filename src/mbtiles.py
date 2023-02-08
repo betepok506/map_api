@@ -38,7 +38,7 @@ class Mbtile:
         self.row = y
         self.conn = conn
         self.origin = origin
-        self.blank_png_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'blank.png')
+        self.blank_png_path = os.path.join(os.path.dirname(os.path.abspath(__file__)), '../blank.png')
 
     @property
     def output_row(self):
