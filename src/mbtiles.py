@@ -29,6 +29,16 @@ class MbtileSet:
     def get_tile(self, z, x, y):
         return Mbtile(z, x, y, self.conn, self.origin)
 
+    # def __iter__(self):
+    #     return self
+
+    def get_all_tiles(self):
+        cur = self.conn.cursor()
+        for row in cur.execute('select zoom_level, tile_column, tile_row from map'):
+            z, x, y = row[:3]
+            tile = Mbtile(z, x, y, self.conn, self.origin)
+            yield tile
+
 
 class Mbtile:
 
