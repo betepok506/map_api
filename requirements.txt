@@ -2,3 +2,5 @@ fastapi
 uvicorn
 fastapi_health
 requests
+tenacity
+sqlalchemy
